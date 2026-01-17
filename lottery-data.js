@@ -1,6 +1,7 @@
 /**
  * LottoGenius Pro - Lottery Data Module
  * Handles game configurations, data fetching, and storage
+ * UPDATED: Data now generates backwards from current date (Jan 2026)
  */
 
 // Game Configurations
@@ -107,25 +108,22 @@ const GAMES = {
     }
 };
 
-// Sample Historical Data (comprehensive dataset)
-// In production, this would be fetched from APIs
-const HISTORICAL_DATA = {
-    lottomax: generateSampleData('lottomax', 500),
-    lotto649: generateSampleData('lotto649', 600),
-    dailygrand: generateSampleData('dailygrand', 400),
-    lottario: generateSampleData('lottario', 300),
-    ontario49: generateSampleData('ontario49', 500)
-};
-
 // Generate sample historical data based on game configuration
+// FIXED: Now generates data BACKWARDS from current date
 function generateSampleData(gameKey, numDraws) {
     const game = GAMES[gameKey];
     const data = [];
-    const startDate = new Date('2019-05-14');
+    
+    // Start from today and work backwards
+    const today = new Date('2026-01-17'); // Current date
+    
+    // Calculate average days between draws based on draw days
+    const drawsPerWeek = game.drawDays.length;
+    const avgDaysBetweenDraws = 7 / drawsPerWeek;
     
     for (let i = 0; i < numDraws; i++) {
-        const drawDate = new Date(startDate);
-        drawDate.setDate(startDate.getDate() + Math.floor(i * 3.5));
+        const drawDate = new Date(today);
+        drawDate.setDate(today.getDate() - Math.floor(i * avgDaysBetweenDraws));
         
         // Generate random numbers for the draw
         const numbers = generateRandomNumbers(game.balls, game.pick);
@@ -139,7 +137,7 @@ function generateSampleData(gameKey, numDraws) {
         });
     }
     
-    return data.reverse(); // Most recent first
+    return data; // Already in most recent first order
 }
 
 // Generate random unique numbers
@@ -150,6 +148,16 @@ function generateRandomNumbers(max, count) {
     }
     return Array.from(numbers);
 }
+
+// Sample Historical Data (comprehensive dataset)
+// Data is generated from current date backwards
+const HISTORICAL_DATA = {
+    lottomax: generateSampleData('lottomax', 700),    // ~2.5 years of data
+    lotto649: generateSampleData('lotto649', 700),    // ~2.5 years of data
+    dailygrand: generateSampleData('dailygrand', 500), // ~2 years of data
+    lottario: generateSampleData('lottario', 350),     // ~3.5 years of data (weekly)
+    ontario49: generateSampleData('ontario49', 700)    // ~2.5 years of data
+};
 
 // Data Analysis Class
 class LotteryDataAnalyzer {

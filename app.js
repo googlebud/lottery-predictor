@@ -1,6 +1,7 @@
 /**
  * LottoGenius Pro - Main Application
  * Handles UI interactions, data visualization, and state management
+ * FIXED: Improved game switching and prediction regeneration
  */
 
 class LottoGeniusApp {
@@ -29,9 +30,15 @@ class LottoGeniusApp {
             btn.addEventListener('click', (e) => this.switchSection(e.target.dataset.section));
         });
         
-        // Game selection
+        // Game selection - FIXED: Use event delegation and proper targeting
         document.querySelectorAll('.game-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.switchGame(e.target.closest('.game-btn').dataset.game));
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const gameBtn = e.target.closest('.game-btn');
+                if (gameBtn && gameBtn.dataset.game) {
+                    this.switchGame(gameBtn.dataset.game);
+                }
+            });
         });
         
         // Refresh data
@@ -41,7 +48,10 @@ class LottoGeniusApp {
         document.getElementById('generateNewPredictions').addEventListener('click', () => this.generateDashboardPredictions());
         
         // Run prediction engine
-        document.getElementById('runPrediction').addEventListener('click', () => this.runPredictionEngine());
+        const runBtn = document.getElementById('runPrediction');
+        if (runBtn) {
+            runBtn.addEventListener('click', () => this.runPredictionEngine());
+        }
         
         // Settings sliders
         document.querySelectorAll('.slider-item input[type="range"]').forEach(slider => {
@@ -78,8 +88,14 @@ class LottoGeniusApp {
         }
     }
     
+    // FIXED: Enhanced game switching with full UI refresh
     switchGame(gameKey) {
+        if (this.currentGame === gameKey) return; // Avoid unnecessary updates
+        
+        console.log('Switching to game:', gameKey);
         this.currentGame = gameKey;
+        
+        // Reinitialize analyzer and prediction engine for new game
         this.analyzer = new LotteryDataAnalyzer(gameKey);
         this.engine = new PredictionEngine(gameKey);
         
@@ -88,8 +104,27 @@ class LottoGeniusApp {
             btn.classList.toggle('active', btn.dataset.game === gameKey);
         });
         
-        // Update UI
-        this.updateUI();
+        // Show loading briefly
+        this.showLoading(true);
+        
+        // Update UI with small delay for visual feedback
+        setTimeout(() => {
+            this.updateUI();
+            
+            // Also update analysis section if it's visible
+            const analysisSection = document.getElementById('analysis');
+            if (analysisSection && analysisSection.classList.contains('active')) {
+                this.updateAnalysisSection();
+            }
+            
+            // Update predictions section if it's visible
+            const predictionsSection = document.getElementById('predictions');
+            if (predictionsSection && predictionsSection.classList.contains('active')) {
+                this.updatePredictionsSection();
+            }
+            
+            this.showLoading(false);
+        }, 300);
     }
     
     // =========================================
@@ -166,7 +201,10 @@ class LottoGeniusApp {
         document.getElementById('totalDraws').textContent = totalDraws;
     }
     
+    // FIXED: Force regeneration of predictions
     updatePredictions() {
+        console.log('Generating predictions for:', this.currentGame);
+        
         // Primary set (hybrid)
         const primarySet = this.engine.hybridPrediction();
         this.displayNumbers('primaryNumbers', primarySet);
@@ -201,6 +239,8 @@ class LottoGeniusApp {
     
     displayNumbers(containerId, numbers) {
         const container = document.getElementById(containerId);
+        if (!container) return;
+        
         container.innerHTML = '';
         
         numbers.forEach((num, idx) => {
@@ -240,13 +280,14 @@ class LottoGeniusApp {
         const labels = Object.keys(frequency);
         const data = Object.values(frequency);
         
-        const ctx = document.getElementById('frequencyChart').getContext('2d');
+        const ctx = document.getElementById('frequencyChart');
+        if (!ctx) return;
         
         if (this.charts.frequency) {
             this.charts.frequency.destroy();
         }
         
-        this.charts.frequency = new Chart(ctx, {
+        this.charts.frequency = new Chart(ctx.getContext('2d'), {
             type: 'bar',
             data: {
                 labels: labels,
@@ -299,6 +340,8 @@ class LottoGeniusApp {
     updateRecentDraws() {
         const draws = this.analyzer.getRecentDraws(15);
         const tbody = document.getElementById('recentDrawsBody');
+        if (!tbody) return;
+        
         tbody.innerHTML = '';
         
         draws.forEach(draw => {
@@ -342,6 +385,8 @@ class LottoGeniusApp {
         const frequency = this.analyzer.getNumberFrequency();
         const expected = this.analyzer.getExpectedFrequency();
         const container = document.getElementById('frequencyHeatmap');
+        if (!container) return;
+        
         container.innerHTML = '';
         
         for (let i = 1; i <= GAMES[this.currentGame].balls; i++) {
@@ -366,6 +411,8 @@ class LottoGeniusApp {
     updateCommonPairs() {
         const pairs = this.analyzer.getCommonPairs(12);
         const container = document.getElementById('commonPairs');
+        if (!container) return;
+        
         container.innerHTML = '';
         
         pairs.forEach(({ numbers, frequency }) => {
@@ -384,13 +431,14 @@ class LottoGeniusApp {
     
     updateOddEvenChart() {
         const distribution = this.analyzer.getOddEvenDistribution();
-        const ctx = document.getElementById('oddEvenChart').getContext('2d');
+        const ctx = document.getElementById('oddEvenChart');
+        if (!ctx) return;
         
         if (this.charts.oddEven) {
             this.charts.oddEven.destroy();
         }
         
-        this.charts.oddEven = new Chart(ctx, {
+        this.charts.oddEven = new Chart(ctx.getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: Object.keys(distribution),
@@ -423,13 +471,14 @@ class LottoGeniusApp {
     
     updateSumRangeChart() {
         const sumDist = this.analyzer.getSumDistribution();
-        const ctx = document.getElementById('sumRangeChart').getContext('2d');
+        const ctx = document.getElementById('sumRangeChart');
+        if (!ctx) return;
         
         if (this.charts.sumRange) {
             this.charts.sumRange.destroy();
         }
         
-        this.charts.sumRange = new Chart(ctx, {
+        this.charts.sumRange = new Chart(ctx.getContext('2d'), {
             type: 'bar',
             data: {
                 labels: Object.keys(sumDist.ranges),
@@ -461,13 +510,14 @@ class LottoGeniusApp {
     
     updateDecadeChart() {
         const decades = this.analyzer.getDecadeDistribution();
-        const ctx = document.getElementById('decadeChart').getContext('2d');
+        const ctx = document.getElementById('decadeChart');
+        if (!ctx) return;
         
         if (this.charts.decade) {
             this.charts.decade.destroy();
         }
         
-        this.charts.decade = new Chart(ctx, {
+        this.charts.decade = new Chart(ctx.getContext('2d'), {
             type: 'polarArea',
             data: {
                 labels: Object.keys(decades),
@@ -503,13 +553,14 @@ class LottoGeniusApp {
     
     updateConsecutiveChart() {
         const consecutive = this.analyzer.getConsecutivePairFrequency();
-        const ctx = document.getElementById('consecutiveChart').getContext('2d');
+        const ctx = document.getElementById('consecutiveChart');
+        if (!ctx) return;
         
         if (this.charts.consecutive) {
             this.charts.consecutive.destroy();
         }
         
-        this.charts.consecutive = new Chart(ctx, {
+        this.charts.consecutive = new Chart(ctx.getContext('2d'), {
             type: 'bar',
             data: {
                 labels: Object.keys(consecutive).map(k => `${k} pairs`),
@@ -542,6 +593,8 @@ class LottoGeniusApp {
     updateGapAnalysis() {
         const overdue = this.analyzer.getOverdueNumbers(GAMES[this.currentGame].balls);
         const container = document.getElementById('gapAnalysis');
+        if (!container) return;
+        
         container.innerHTML = '';
         
         overdue.slice(0, 30).forEach(({ number, drawsAgo }) => {
@@ -569,6 +622,8 @@ class LottoGeniusApp {
         const patterns = this.analyzer.getPatternAnalysis();
         const total = HISTORICAL_DATA[this.currentGame].length;
         const container = document.getElementById('patternsList');
+        if (!container) return;
+        
         container.innerHTML = '';
         
         const patternNames = {
@@ -597,18 +652,18 @@ class LottoGeniusApp {
     // PREDICTIONS SECTION
     // =========================================
     updatePredictionsSection() {
-        // Section is ready for predictions
+        this.updatePredictionHistoryTable();
     }
     
     runPredictionEngine() {
-        const numSets = parseInt(document.getElementById('numSets').value) || 5;
-        const algorithm = document.getElementById('algorithmMix').value;
+        const numSets = parseInt(document.getElementById('numSets')?.value) || 5;
+        const algorithm = document.getElementById('algorithmMix')?.value || 'hybrid';
         
         const constraints = {
-            balanceOddEven: document.getElementById('balanceOddEven').checked,
-            balanceHighLow: document.getElementById('balanceHighLow').checked,
-            includeConsecutive: document.getElementById('includeConsecutive').checked,
-            avoidRepeats: document.getElementById('avoidRepeats').checked
+            balanceOddEven: document.getElementById('balanceOddEven')?.checked ?? true,
+            balanceHighLow: document.getElementById('balanceHighLow')?.checked ?? true,
+            includeConsecutive: document.getElementById('includeConsecutive')?.checked ?? false,
+            avoidRepeats: document.getElementById('avoidRepeats')?.checked ?? true
         };
         
         this.showLoading(true);
@@ -623,6 +678,8 @@ class LottoGeniusApp {
     
     displayGeneratedPredictions(sets) {
         const container = document.getElementById('generatedPredictions');
+        if (!container) return;
+        
         container.innerHTML = '';
         
         sets.forEach((set, idx) => {
@@ -749,8 +806,10 @@ class LottoGeniusApp {
     
     updateLastUpdateTime() {
         const now = new Date();
-        document.getElementById('lastUpdateTime').textContent = 
-            now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        const el = document.getElementById('lastUpdateTime');
+        if (el) {
+            el.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
     }
 }
 
