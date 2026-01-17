@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ontario Lottery Analyzer & Predictor</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="logo">
+                <span class="logo-icon">🎰</span>
+                <h1>LottoGenius Pro</h1>
+                <span class="badge">Advanced Analytics</span>
+            </div>
+            <nav class="main-nav">
+                <button class="nav-btn active" data-section="dashboard">Dashboard</button>
+                <button class="nav-btn" data-section="analysis">Deep Analysis</button>
+                <button class="nav-btn" data-section="predictions">Predictions</button>
+                <button class="nav-btn" data-section="algorithms">Algorithms</button>
+                <button class="nav-btn" data-section="settings">Settings</button>
+            </nav>
+            <div class="header-actions">
+                <button id="refreshData" class="btn-primary">
+                    <span class="btn-icon">🔄</span> Refresh Data
+                </button>
+                <span class="last-update">Last update: <span id="lastUpdateTime">--</span></span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Game Selector -->
+            <div class="game-selector">
+                <button class="game-btn active" data-game="lottomax">
+                    <span class="game-icon">💰</span>
+                    <span class="game-name">Lotto Max</span>
+                    <span class="game-format">7/50</span>
+                </button>
+                <button class="game-btn" data-game="lotto649">
+                    <span class="game-icon">🎲</span>
+                    <span class="game-name">Lotto 6/49</span>
+                    <span class="game-format">6/49</span>
+                </button>
+                <button class="game-btn" data-game="dailygrand">
+                    <span class="game-icon">👑</span>
+                    <span class="game-name">Daily Grand</span>
+                    <span class="game-format">5/49+1/7</span>
+                </button>
+                <button class="game-btn" data-game="lottario">
+                    <span class="game-icon">🌟</span>
+                    <span class="game-name">Lottario</span>
+                    <span class="game-format">6/45</span>
+                </button>
+                <button class="game-btn" data-game="ontario49">
+                    <span class="game-icon">🍁</span>
+                    <span class="game-name">Ontario 49</span>
+                    <span class="game-format">6/49</span>
+                </button>
+            </div>
+
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <div class="section-header">
+                    <h2>📊 Dashboard - <span id="currentGameName">Lotto Max</span></h2>
+                    <div class="next-draw-info">
+                        <span>Next Draw:</span>
+                        <strong id="nextDrawDate">Loading...</strong>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon hot">🔥</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Hottest Number</span>
+                            <span class="stat-value" id="hottestNumber">--</span>
+                            <span class="stat-detail" id="hottestDetail">-- draws</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon cold">❄️</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Coldest Number</span>
+                            <span class="stat-value" id="coldestNumber">--</span>
+                            <span class="stat-detail" id="coldestDetail">-- draws ago</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon overdue">⏰</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Most Overdue</span>
+                            <span class="stat-value" id="overdueNumber">--</span>
+                            <span class="stat-detail" id="overdueDetail">-- draws overdue</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon total">📈</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Draws Analyzed</span>
+                            <span class="stat-value" id="totalDraws">--</span>
+                            <span class="stat-detail" id="drawsDetail">Since 2019</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prediction Panel -->
+                <div class="prediction-panel">
+                    <div class="panel-header">
+                        <h3>🎯 AI-Generated Predictions for Next Draw</h3>
+                        <div class="confidence-meter">
+                            <span>Algorithm Confidence:</span>
+                            <div class="meter-bar">
+                                <div class="meter-fill" id="confidenceFill"></div>
+                            </div>
+                            <span id="confidenceValue">--</span>
+                        </div>
+                    </div>
+                    <div class="prediction-sets">
+                        <div class="prediction-set primary">
+                            <div class="set-header">
+                                <span class="set-label">🥇 Primary Set (Hybrid Algorithm)</span>
+                                <span class="set-score" id="primaryScore">Score: --</span>
+                            </div>
+                            <div class="numbers-display" id="primaryNumbers">
+                                <!-- Numbers will be inserted here -->
+                            </div>
+                        </div>
+                        <div class="prediction-set secondary">
+                            <div class="set-header">
+                                <span class="set-label">🥈 Hot Numbers Set</span>
+                                <span class="set-score" id="hotScore">Score: --</span>
+                            </div>
+                            <div class="numbers-display" id="hotNumbers">
+                            </div>
+                        </div>
+                        <div class="prediction-set tertiary">
+                            <div class="set-header">
+                                <span class="set-label">🥉 Overdue Numbers Set</span>
+                                <span class="set-score" id="overdueScore">Score: --</span>
+                            </div>
+                            <div class="numbers-display" id="overdueNumbers">
+                            </div>
+                        </div>
+                        <div class="prediction-set balanced">
+                            <div class="set-header">
+                                <span class="set-label">⚖️ Balanced Set (Statistical Equilibrium)</span>
+                                <span class="set-score" id="balancedScore">Score: --</span>
+                            </div>
+                            <div class="numbers-display" id="balancedNumbers">
+                            </div>
+                        </div>
+                    </div>
+                    <button id="generateNewPredictions" class="btn-generate">
+                        <span>🔮</span> Generate New Predictions
+                    </button>
+                </div>
+
+                <!-- Frequency Chart -->
+                <div class="chart-panel">
+                    <h3>📊 Number Frequency Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="frequencyChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Draws -->
+                <div class="recent-draws-panel">
+                    <h3>📜 Recent Winning Numbers</h3>
+                    <div class="draws-table-container">
+                        <table class="draws-table" id="recentDrawsTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Winning Numbers</th>
+                                    <th>Bonus</th>
+                                    <th>Sum</th>
+                                    <th>Odd/Even</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentDrawsBody">
+                                <!-- Draws will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analysis Section -->
+            <section id="analysis" class="content-section">
+                <div class="section-header">
+                    <h2>🔬 Deep Statistical Analysis</h2>
+                </div>
+
+                <div class="analysis-grid">
+                    <!-- Number Frequency Analysis -->
+                    <div class="analysis-card full-width">
+                        <h3>Number Frequency Heatmap</h3>
+                        <div class="heatmap-container" id="frequencyHeatmap">
+                            <!-- Heatmap will be generated here -->
+                        </div>
+                        <div class="heatmap-legend">
+                            <span class="legend-item cold">Cold (< -10%)</span>
+                            <span class="legend-item cool">Cool (-10% to -5%)</span>
+                            <span class="legend-item neutral">Neutral (±5%)</span>
+                            <span class="legend-item warm">Warm (+5% to +10%)</span>
+                            <span class="legend-item hot">Hot (> +10%)</span>
+                        </div>
+                    </div>
+
+                    <!-- Consecutive Pairs Analysis -->
+                    <div class="analysis-card">
+                        <h3>🔗 Most Common Pairs</h3>
+                        <div class="pairs-list" id="commonPairs">
+                            <!-- Pairs will be listed here -->
+                        </div>
+                    </div>
+
+                    <!-- Consecutive Numbers Analysis -->
+                    <div class="analysis-card">
+                        <h3>📊 Consecutive Numbers Frequency</h3>
+                        <div class="chart-container small">
+                            <canvas id="consecutiveChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Odd/Even Distribution -->
+                    <div class="analysis-card">
+                        <h3>⚖️ Odd/Even Distribution</h3>
+                        <div class="chart-container small">
+                            <canvas id="oddEvenChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Sum Range Analysis -->
+                    <div class="analysis-card">
+                        <h3>➕ Sum Range Distribution</h3>
+                        <div class="chart-container small">
+                            <canvas id="sumRangeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Number Gap Analysis -->
+                    <div class="analysis-card full-width">
+                        <h3>⏱️ Number Gap Analysis (Days Since Last Drawn)</h3>
+                        <div class="gap-analysis-container" id="gapAnalysis">
+                            <!-- Gap data will be shown here -->
+                        </div>
+                    </div>
+
+                    <!-- Decade Distribution -->
+                    <div class="analysis-card">
+                        <h3>📊 Decade Distribution</h3>
+                        <div class="chart-container small">
+                            <canvas id="decadeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Pattern Recognition -->
+                    <div class="analysis-card">
+                        <h3>🧩 Pattern Recognition</h3>
+                        <div class="patterns-list" id="patternsList">
+                            <!-- Patterns will be listed here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Predictions Section -->
+            <section id="predictions" class="content-section">
+                <div class="section-header">
+                    <h2>🎯 Advanced Prediction Engine</h2>
+                </div>
+
+                <div class="prediction-controls">
+                    <div class="control-group">
+                        <label>Number of Sets to Generate:</label>
+                        <input type="number" id="numSets" min="1" max="20" value="5">
+                    </div>
+                    <div class="control-group">
+                        <label>Algorithm Mix:</label>
+                        <select id="algorithmMix">
+                            <option value="hybrid">Hybrid (All Algorithms)</option>
+                            <option value="frequency">Frequency-Based</option>
+                            <option value="overdue">Overdue-Based</option>
+                            <option value="pattern">Pattern-Based</option>
+                            <option value="statistical">Statistical Equilibrium</option>
+                            <option value="wheeling">Wheeling System</option>
+                            <option value="delta">Delta System</option>
+                            <option value="markov">Markov Chain</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Constraints:</label>
+                        <div class="constraints-options">
+                            <label><input type="checkbox" id="balanceOddEven" checked> Balance Odd/Even</label>
+                            <label><input type="checkbox" id="balanceHighLow" checked> Balance High/Low</label>
+                            <label><input type="checkbox" id="includeConsecutive"> Include Consecutive</label>
+                            <label><input type="checkbox" id="avoidRepeats" checked> Avoid Recent Numbers</label>
+                        </div>
+                    </div>
+                    <button id="runPrediction" class="btn-primary large">
+                        <span>🚀</span> Run Prediction Engine
+                    </button>
+                </div>
+
+                <div class="generated-predictions" id="generatedPredictions">
+                    <!-- Generated predictions will appear here -->
+                </div>
+
+                <div class="prediction-history">
+                    <h3>📜 Prediction History & Accuracy</h3>
+                    <div class="history-table-container">
+                        <table class="history-table" id="predictionHistory">
+                            <thead>
+                                <tr>
+                                    <th>Date Generated</th>
+                                    <th>For Draw</th>
+                                    <th>Predicted Numbers</th>
+                                    <th>Actual Numbers</th>
+                                    <th>Matches</th>
+                                    <th>Algorithm</th>
+                                </tr>
+                            </thead>
+                            <tbody id="predictionHistoryBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Algorithms Section -->
+            <section id="algorithms" class="content-section">
+                <div class="section-header">
+                    <h2>🧠 Algorithm Documentation</h2>
+                </div>
+
+                <div class="algorithms-grid">
+                    <div class="algorithm-card">
+                        <div class="algo-header">
+                            <span class="algo-icon">📈</span>
+                            <h3>Frequency Analysis</h3>
+                        </div>
+                        <p>Analyzes historical frequency of each number and weighs them accordingly. Numbers that appear more frequently get higher weights.</p>
+                        <div class="formula">P(n) = f(n) / Σf(all)</div>
+                        <div class="algo-status active">Active</div>
+                    </div>
+
+                    <div class="algorithm-card">
+                        <div class="algo-header">
+                            <span class="algo-icon">⏰</span>
+                            <h3>Overdue Analysis</h3>
+                        </div>
+                        <p>Identifies numbers that haven't appeared for longer than their expected interval. Based on the law of averages hypothesis.</p>
+                        <div class="formula">Overdue(n) = draws_since(n) / expected_interval(n)</div>
+                        <div class="algo-status active">Active</div>
+                    </div>
+
+                    <div class="algorithm-card">
+                        <div class="algo-header">
+                            <span class="algo-icon">🔗</span>
+                            <h3>Pair Frequency</h3>
+                        </div>
+                        <p>Analyzes which number pairs appear together most frequently and uses this correlation to generate predictions.</p>
+                        <div class="formula">Corr(a,b) = P(a∩b) / (P(a) × P(b))</div>
+                        <div class="algo-status active">Active</div>
+                    </div>
+
+                    <div class="algorithm-card">
+                        <div class="algo-header">
+                            <span class="algo-icon">📊</span>
+                            <h3>Statistical Equilibrium</h3>
+                        </div>
+                        <p>Generates numbers that match the statistical profile of winning draws (sum range, odd/even ratio, decade distribution).</p>
+                        <div class="formula">Score = Σ|observed - expected|²</div>
+                        <div class="algo-status active">Active</div>
+                    </div>
+
+                    <div class="algorithm-card">
+                        <div class="algo-header">
+                            <span class="algo-icon">🎡</span>
+                            <h3>Wheeling System</h3>
+                        </div>
+                        <p>Mathematical system that generates combinations ensuring coverage of selected numbers across multiple tickets.</p>
+                        <div class="formula">Coverage = C(selected, k) / C(total, k)</div>
+                        <div class="algo-status active">Active</div>
+                    </div>
+
+                    <div class="algorithm-card">
+                        <div class="algo-header">
+                            <span class="algo-icon">Δ</span>
+                            <h3>Delta System</h3>
+                        </div>
+                        <p>Analyzes the differences between consecutive numbers in winning draws and uses common delta patterns.</p>
+                        <div class="formula">δᵢ = nᵢ₊₁ - nᵢ</div>
+                        <div class="algo-status active">Active</div>
+                    </div>
+
+                    <div class="algorithm-card">
+                        <div class="algo-header">
+                            <span class="algo-icon">🔄</span>
+                            <h3>Markov Chain</h3>
+                        </div>
+                        <p>Models number transitions as a Markov process, predicting likely next states based on transition probabilities.</p>
+                        <div class="formula">P(Xₙ₊₁|Xₙ) = transition_matrix[Xₙ][Xₙ₊₁]</div>
+                        <div class="algo-status active">Active</div>
+                    </div>
+
+                    <div class="algorithm-card">
+                        <div class="algo-header">
+                            <span class="algo-icon">🧬</span>
+                            <h3>Genetic Algorithm</h3>
+                        </div>
+                        <p>Evolves number combinations through selection, crossover, and mutation to optimize for historical patterns.</p>
+                        <div class="formula">fitness = Σ(pattern_matches × weight)</div>
+                        <div class="algo-status active">Active</div>
+                    </div>
+
+                    <div class="algorithm-card">
+                        <div class="algo-header">
+                            <span class="algo-icon">🌊</span>
+                            <h3>Fourier Analysis</h3>
+                        </div>
+                        <p>Detects cyclical patterns in number appearances using spectral analysis techniques.</p>
+                        <div class="formula">F(ω) = ∫f(t)e^(-iωt)dt</div>
+                        <div class="algo-status active">Active</div>
+                    </div>
+
+                    <div class="algorithm-card">
+                        <div class="algo-header">
+                            <span class="algo-icon">🎲</span>
+                            <h3>Monte Carlo Simulation</h3>
+                        </div>
+                        <p>Runs thousands of simulations based on historical probabilities to identify most likely combinations.</p>
+                        <div class="formula">E[X] ≈ (1/N)Σxᵢ</div>
+                        <div class="algo-status active">Active</div>
+                    </div>
+                </div>
+
+                <div class="github-algorithms">
+                    <h3>📦 Community Algorithms (from GitHub)</h3>
+                    <p>Additional algorithms sourced from public repositories:</p>
+                    <div class="github-list" id="githubAlgorithms">
+                        <div class="github-item">
+                            <span class="repo-name">lottery-prediction-ml</span>
+                            <span class="repo-desc">Machine learning based prediction using LSTM networks</span>
+                            <span class="repo-status">Integrated</span>
+                        </div>
+                        <div class="github-item">
+                            <span class="repo-name">lotto-number-generator</span>
+                            <span class="repo-desc">Statistical number generator with multiple strategies</span>
+                            <span class="repo-status">Integrated</span>
+                        </div>
+                        <div class="github-item">
+                            <span class="repo-name">probability-lottery-analysis</span>
+                            <span class="repo-desc">Advanced probability calculations for lottery games</span>
+                            <span class="repo-status">Integrated</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="content-section">
+                <div class="section-header">
+                    <h2>⚙️ Settings</h2>
+                </div>
+
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3>Data Source</h3>
+                        <div class="setting-item">
+                            <label>Data Provider:</label>
+                            <select id="dataProvider">
+                                <option value="olg">OLG Official (olg.ca)</option>
+                                <option value="playolg">PlayOLG</option>
+                                <option value="lottonumbers">LottoNumbers.com</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label>Update Frequency:</label>
+                            <select id="updateFrequency">
+                                <option value="manual">Manual Only</option>
+                                <option value="hourly">Hourly</option>
+                                <option value="daily">Daily</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Algorithm Weights</h3>
+                        <div class="weight-sliders">
+                            <div class="slider-item">
+                                <label>Frequency Analysis:</label>
+                                <input type="range" id="weightFrequency" min="0" max="100" value="25">
+                                <span class="weight-value">25%</span>
+                            </div>
+                            <div class="slider-item">
+                                <label>Overdue Analysis:</label>
+                                <input type="range" id="weightOverdue" min="0" max="100" value="25">
+                                <span class="weight-value">25%</span>
+                            </div>
+                            <div class="slider-item">
+                                <label>Pattern Analysis:</label>
+                                <input type="range" id="weightPattern" min="0" max="100" value="25">
+                                <span class="weight-value">25%</span>
+                            </div>
+                            <div class="slider-item">
+                                <label>Statistical Balance:</label>
+                                <input type="range" id="weightStatistical" min="0" max="100" value="25">
+                                <span class="weight-value">25%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Display Options</h3>
+                        <div class="setting-item">
+                            <label><input type="checkbox" id="showConfidence" checked> Show Confidence Scores</label>
+                        </div>
+                        <div class="setting-item">
+                            <label><input type="checkbox" id="showFormulas" checked> Show Algorithm Formulas</label>
+                        </div>
+                        <div class="setting-item">
+                            <label><input type="checkbox" id="darkMode" checked> Dark Mode</label>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Export/Import</h3>
+                        <button class="btn-secondary" id="exportData">📤 Export Analysis Data</button>
+                        <button class="btn-secondary" id="exportPredictions">📤 Export Predictions</button>
+                        <button class="btn-secondary" id="importData">📥 Import Historical Data</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>LottoGenius Pro - Advanced Lottery Analytics | For Personal Use Only</p>
+            <p class="disclaimer">⚠️ Lottery games are games of chance. This tool provides statistical analysis only and does not guarantee winning numbers.</p>
+        </footer>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Analyzing data...</p>
+    </div>
+
+    <script src="lottery-data.js"></script>
+    <script src="data-fetcher.js"></script>
+    <script src="algorithms.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
